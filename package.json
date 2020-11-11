@@ -1,0 +1,19 @@
+{
+  "name": "shazam-shuffle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kyle | TheGuitarleader",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.3",
+    "discord-ytdl-core": "^4.1.3",
+    "discord.js": "^12.3.1",
+    "request": "^2.88.2",
+    "sqlite3": "^5.0.0",
+    "ytdl-core": "^4.0.3"
+  }
+}
