@@ -19,11 +19,11 @@ Based off of Fox's Beat Shazam™, Shazam Shuffle is the perfect music trivia ga
 
 
 # I found a bug, who do I contact?
-* Head over to the [issues](https://github.com/TheGuitarleader/MixerLive/issues) page and create a new issue.
+* Head over to the [issues](https://github.com/TheGuitarleader/Shazam-Shuffle/issues) page and create a new issue.
 
 
 # I have a new feature idea!
-* Submit feature requests at the [issues](https://github.com/TheGuitarleader/MixerLive/issues) page. Please note that not all feature requests will be implemented.
+* Submit feature requests at the [issues](https://github.com/TheGuitarleader/Shazam-Shuffle/issues) page. Please note that not all feature requests will be implemented.
 
 # Privacy
 Shazam Shuffle uses a database to store the music for speed and reliability. In an effort of transparency, here's is all the data that Shazam Shuffle stores:
@@ -39,4 +39,5 @@ In order to help with replayability, when a game is played Shazam Shuffle will:
 
 # Legal Notice
 Shazam Shuffle is not affiliated with Shazam, Shazam Entertainment Ltd, or Apple Inc.
+
 All rights belong to their respective owners.
