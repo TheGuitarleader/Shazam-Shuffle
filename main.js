@@ -338,7 +338,7 @@ function skip(message, serverQueue) {
   const embed3 = new Discord.MessageEmbed()
   .setColor(config.hex)
   .setTitle(serverQueue.songs[0].title)
-  .setDescription(serverQueue.songs[0].artist)
+  .setDescription(`${serverQueue.songs[0].artist} (${serverQueue.songs[0].year})`)
   serverQueue.textChannel.send(embed3);
   serverQueue.connection.dispatcher.end()
 }
