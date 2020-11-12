@@ -13,11 +13,24 @@ const sqlite = require('sqlite3').verbose();
 const queue = new Map();
 
 let db = new sqlite.Database('./ShazamData.db');
+let musicDB = [];
+
 var catagory = ["80's", "90's", "2000's", "2010's"];
 var songs = [];
 var players = [];
 var time = 10000;
 var answers = 0;
+
+db.all(`SELECT * FROM music`, (err, row) => {
+  if(err){
+    console.log(err);
+  }
+  row.forEach((rows) => {
+    musicDB.push(rows);
+  })
+
+  console.log(musicDB);
+});
 
 //console.log(client.commands);
 client.login(config.token)
@@ -111,7 +124,27 @@ client.on('message', async message => {
         .setTitle('How to play Shazam Shuffle!')
         .setDescription(htp)
       message.reply(embed);
-    }
+    };
+
+    if(message.content.startsWith(`${config.prefix}no-audio`)) {
+      skip(message, queue.get(message.guild.id))
+      message.channel.send('Sorry about that!\n:fast_forward: *Skipping and adding new song!*');
+      var songNum = getRndInt(musicDB.length);
+      const song = {
+        videoId: musicDB[songNum].videoId,
+        seek: musicDB[songNum].startTime,
+        title: musicDB[songNum].title,
+        artist: musicDB[songNum].artist,
+        category: musicDB[songNum].category,
+        year: musicDB[songNum].year,
+        option1: musicDB[songNum].option1,
+        option2: musicDB[songNum].option2,
+        option3: musicDB[songNum].option3,
+        option4: musicDB[songNum].option4,
+        correct: musicDB[songNum].correct
+      }
+      queueConstruct.songs.push(song);
+    };
 
     if(message.content.startsWith(`${config.prefix}play`)) {
 
@@ -123,18 +156,6 @@ client.on('message', async message => {
       .setTitle('Getting game setup...')
       //.setDescription(`The most Shazamed song of all time is “Wake Me Up” by Avicii. It has been Shazamed 22,813,761 times.`)
       gameChannel.send(embed);
-
-      db.all(`SELECT category FROM music`, (err, row) => {
-        if(err){
-          console.log(err);
-        }
-        row.forEach((rows) => {
-          catagory.push(rows);
-        });
-
-        //console.log(catagory);
-
-      });
 
       voiceChannel = message.member.voice.channel;
       if (!voiceChannel)
@@ -156,19 +177,20 @@ client.on('message', async message => {
         }
       };
 
-      const song = {
-        videoId: "SjABj6Pk_Eg",
-        seek: 25,
-        title: "All or Nothing",
-        artist: "Theory Of A Deadman",
-        category: "Rock",
-        year: "2008",
-        option1: "I'm sorry",
-        option2: "All or Nothing",
-        option3: "I Need You",
-        option4: "By The Way",
-        correct: 2
-      }
+      // var songNum = getRndInt(musicDB.length);
+      // const song = {
+      //   videoId: musicDB[songNum].videoId,
+      //   seek: musicDB[songNum].startTime,
+      //   title: musicDB[songNum].title,
+      //   artist: musicDB[songNum].artist,
+      //   category: musicDB[songNum].category,
+      //   year: musicDB[songNum].year,
+      //   option1: musicDB[songNum].option1,
+      //   option2: musicDB[songNum].option2,
+      //   option3: musicDB[songNum].option3,
+      //   option4: musicDB[songNum].option4,
+      //   correct: musicDB[songNum].correct
+      // }
 
       if(!serverQueue)
       {
@@ -182,7 +204,26 @@ client.on('message', async message => {
         };
 
         queue.set(message.guild.id, queueConstruct);
-        queueConstruct.songs.push(song);
+
+        while(queueConstruct.songs.length < 10)
+        {
+          var songNum = getRndInt(musicDB.length);
+          const song = {
+            videoId: musicDB[songNum].videoId,
+            seek: musicDB[songNum].startTime,
+            title: musicDB[songNum].title,
+            artist: musicDB[songNum].artist,
+            category: musicDB[songNum].category,
+            year: musicDB[songNum].year,
+            option1: musicDB[songNum].option1,
+            option2: musicDB[songNum].option2,
+            option3: musicDB[songNum].option3,
+            option4: musicDB[songNum].option4,
+            correct: musicDB[songNum].correct
+          }
+          queueConstruct.songs.push(song);
+          console.log('oof')
+        }
 
         try
         {
@@ -210,16 +251,16 @@ client.on('message', async message => {
       //   });
       // });
 
-      const embed2 = new Discord.MessageEmbed()
-      .setColor(config.hex)
-      .setTitle(`Catagory: ${song.category}`)
-      .setDescription(`1. ${song.option1}\n2. ${song.option2}\n3. ${song.option3}\n4. ${song.option4}`)
-      gameChannel.send(embed2).then(msg => {
-          msg.react('1️⃣');
-          msg.react('2️⃣');
-          msg.react('3️⃣');
-          msg.react('4️⃣');
-      });
+      // const embed2 = new Discord.MessageEmbed()
+      // .setColor(config.hex)
+      // .setTitle(`Catagory: ${song.category}`)
+      // .setDescription(`1. ${song.option1}\n2. ${song.option2}\n3. ${song.option3}\n4. ${song.option4}`)
+      // gameChannel.send(embed2).then(msg => {
+      //     msg.react('1️⃣');
+      //     msg.react('2️⃣');
+      //     msg.react('3️⃣');
+      //     msg.react('4️⃣');
+      // });
     }
 });
 
@@ -236,6 +277,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   if(answers == players.length)
   {
     skip(message, serverQueue);
+    answers = 0;
   }
 });
 
@@ -257,7 +299,7 @@ function play(guild, song) {
     return;
   }
 
-  let stream = ytdl(song.videoId, {
+  let stream = ytdl('www.youtube.com/watch?v=' + song.videoId, {
     seek: song.seek,
     opusEncoded: true,
     encoderArgs: ['-af', 'bass=g=10,dynaudnorm=f=200']
@@ -271,6 +313,17 @@ function play(guild, song) {
     })
     .on("error", error => console.error(error));
   dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+
+  const embed2 = new Discord.MessageEmbed()
+  .setColor(config.hex)
+  .setTitle(`Catagory: ${song.category}`)
+  .setDescription(`1. ${song.option1}\n2. ${song.option2}\n3. ${song.option3}\n4. ${song.option4}`)
+  gameChannel.send(embed2).then(msg => {
+      msg.react('1️⃣');
+      msg.react('2️⃣');
+      msg.react('3️⃣');
+      msg.react('4️⃣');
+  });
 }
 
 function skip(message, serverQueue) {
