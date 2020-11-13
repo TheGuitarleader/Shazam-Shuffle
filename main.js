@@ -14,13 +14,6 @@ const queue = new Map();
 
 let db = new sqlite.Database('./ShazamData.db');
 let musicDB = [];
-
-var catagory = ["80's", "90's", "2000's", "2010's"];
-var songs = [];
-var players = [];
-var time = 10000;
-var answers = 0;
-
 db.all(`SELECT * FROM music`, (err, row) => {
   if(err){
     console.log(err);
@@ -29,8 +22,11 @@ db.all(`SELECT * FROM music`, (err, row) => {
     musicDB.push(rows);
   })
 
-  console.log(musicDB);
+  //console.log(musicDB);
 });
+
+var catagory = ["80's", "90's", "2000's", "2010's"];
+var time = 10000;
 
 //console.log(client.commands);
 client.login(config.token)
@@ -169,29 +165,6 @@ client.on('message', async message => {
         );
       }
 
-      for(const [id, user] of voiceChannel.members) {
-        if(user.id != client.user.id)
-        {
-          console.log(user.id);
-          players.push(user.id);
-        }
-      };
-
-      // var songNum = getRndInt(musicDB.length);
-      // const song = {
-      //   videoId: musicDB[songNum].videoId,
-      //   seek: musicDB[songNum].startTime,
-      //   title: musicDB[songNum].title,
-      //   artist: musicDB[songNum].artist,
-      //   category: musicDB[songNum].category,
-      //   year: musicDB[songNum].year,
-      //   option1: musicDB[songNum].option1,
-      //   option2: musicDB[songNum].option2,
-      //   option3: musicDB[songNum].option3,
-      //   option4: musicDB[songNum].option4,
-      //   correct: musicDB[songNum].correct
-      // }
-
       if(!serverQueue)
       {
         const queueConstruct = {
@@ -199,6 +172,8 @@ client.on('message', async message => {
           voiceChannel: voiceChannel,
           connection: null,
           songs: [],
+          players: [],
+          answers: 0,
           volume: 5,
           playing: true
         };
@@ -222,7 +197,6 @@ client.on('message', async message => {
             correct: musicDB[songNum].correct
           }
           queueConstruct.songs.push(song);
-          console.log('oof')
         }
 
         try
@@ -230,37 +204,20 @@ client.on('message', async message => {
           var connection = await voiceChannel.join();
           queueConstruct.connection = connection;
           play(message.guild, queueConstruct.songs[0]);
+
+          for(const [id, user] of voiceChannel.members) {
+            if(user.id != client.user.id)
+            {
+              console.log(`Started new game on ${message.guild.name}, with player ${user.name}`);
+              queueConstruct.players.push(user.id);
+            }
+          };
+
         } catch (err) {
           console.log(err);
           queue.delete(message.guild.id);
         }
       }
-
-      // let stream = ytdl('UlANZSYZ2Js', {
-      //   seek: 31,
-      //   opusEncoded: true,
-      //   encoderArgs: ['-af', 'bass=g=10,dynaudnorm=f=200']
-      // });
-
-      // voiceChannel.join().then(connection => {
-      //   //Shazam.emit('start');
-      //   answers = 0;
-      //   dispatcher = connection.play(stream, { type: 'opus'})
-      //   .on('finish', () => {
-      //       voiceChannel.leave();
-      //   });
-      // });
-
-      // const embed2 = new Discord.MessageEmbed()
-      // .setColor(config.hex)
-      // .setTitle(`Catagory: ${song.category}`)
-      // .setDescription(`1. ${song.option1}\n2. ${song.option2}\n3. ${song.option3}\n4. ${song.option4}`)
-      // gameChannel.send(embed2).then(msg => {
-      //     msg.react('1️⃣');
-      //     msg.react('2️⃣');
-      //     msg.react('3️⃣');
-      //     msg.react('4️⃣');
-      // });
     }
 });
 
@@ -268,28 +225,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
   message = reaction.message;
   serverQueue = queue.get(message.guild.id);
 
-  if(user.id != client.user.id && players.includes(user.id))
+  if(user.id != client.user.id && serverQueue.players.includes(user.id))
   {
-    answers++;
-    console.log(user.username + ` Points: ${time}`);
+    serverQueue.answers++;
+    console.log(user.id);
   }
 
-  if(answers == players.length)
+  if(serverQueue.answers == serverQueue.players.length)
   {
     skip(message, serverQueue);
-    answers = 0;
+    serverQueue.answers = 0;
   }
 });
-
-Shazam.on('start', function() {
-  time = 10000;
-  while(time > 0)
-  {
-    time-1;
-  }
-});
-
-
 
 function play(guild, song) {
   const serverQueue = queue.get(guild.id);
@@ -299,7 +246,7 @@ function play(guild, song) {
     return;
   }
 
-  let stream = ytdl('www.youtube.com/watch?v=' + song.videoId, {
+  let stream = ytdl('https://www.youtube.com/watch?v=' + song.videoId, {
     seek: song.seek,
     opusEncoded: true,
     encoderArgs: ['-af', 'bass=g=10,dynaudnorm=f=200']
